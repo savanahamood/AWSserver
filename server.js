@@ -1,4 +1,5 @@
-
+require('dotenv').config();
+const port =process.env.PORT
 const express = require("express");
 const http = require("http");
 const socketIO = require("socket.io");
@@ -15,37 +16,37 @@ let currentBid = 0;
 let users = [];
 
 io.on("connection", (socket) => {
-  // Join the room
-  socket.on("joinRoom", () => {
-    socket.join("bidRoom");
-    users.push(socket.id);
-    console.log(`User ${socket.id} joined the room`);
+    // Join the room
+    socket.on("joinRoom", () => {
+        socket.join("bidRoom");
+        users.push(socket.id);
+        console.log(`User ${socket.id} joined the room`);
 
-    // Notify other users about the new user
-    socket.broadcast.to("bidRoom").emit("userJoined", socket.id);
-  });
+        // Notify other users about the new user
+        socket.broadcast.to("bidRoom").emit("userJoined", socket.id);
+    });
 
-  // Handle bidding
-  socket.on("bid", (bidAmount) => {
-    if (bidAmount > currentBid) {
-      currentBid = bidAmount;
-      // Broadcast the new bid to all users in the room
-      io.to("bidRoom").emit("newBid", { user: socket.id, bid: currentBid });
-    }
-  });
+    // Handle bidding
+    socket.on("bid", (bidAmount) => {
+        if (bidAmount > currentBid) {
+            currentBid = bidAmount;
+            // Broadcast the new bid to all users in the room
+            io.to("bidRoom").emit("newBid", { user: socket.id, bid: currentBid });
+        }
+    });
 
-  // Handle disconnection
-  socket.on("disconnect", () => {
-    // Remove the user from the room
-    const index = users.indexOf(socket.id);
-    if (index !== -1) {
-      users.splice(index, 1);
-      console.log(`User ${socket.id} left the room`);
+    // Handle disconnection
+    socket.on("disconnect", () => {
+        // Remove the user from the room
+        const index = users.indexOf(socket.id);
+        if (index !== -1) {
+            users.splice(index, 1);
+            console.log(`User ${socket.id} left the room`);
 
-      // Notify other users about the disconnected user
-      socket.broadcast.to("bidRoom").emit("userLeft", socket.id);
-    }
-  });
+            // Notify other users about the disconnected user
+            socket.broadcast.to("bidRoom").emit("userLeft", socket.id);
+        }
+    });
 });
 
 // Serve the static files
@@ -53,9 +54,9 @@ app.use(express.static(path.join(__dirname, "public")));
 
 // Handle the root URL
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
+    res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-server.listen(3000, () => {
-  console.log("Server running on port 3000");
+server.listen(port, () => {
+    console.log("Server running on port 3000");
 });
